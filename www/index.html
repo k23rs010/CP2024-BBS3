@@ -242,22 +242,23 @@ function updatePost(postId) {
     const contentVal = $(`#edit-${postId}`).val();
     if (!validateContent(contentVal)) return;
 
-    // content の内容を変更し、updatedAt フィールドを付加して、更新後の投稿内容を生成
     const updates = {
         content: contentVal,
         updatedAt: firebase.database.ServerValue.TIMESTAMP
     };
 
-    postsRef.child(postId).remove()
+
+    postsRef.child(postId).update(updates)
         .then(() => {
-            showMessage('投稿を更新しました');
-            $(`#post-${postId}`).removeClass('editing');
-            animateUpdate(postId);
+            showMessage('投稿を更新しました!');
+            cancelEdit(postId); 
+            animateUpdate(postId); 
         })
         .catch((error) => {
-            showMessage('更新に失敗しました：' + error.message, 'error');
+            showMessage('投稿の更新に失敗しました：' + error.message, 'error');
         });
 }
+
 
 // 投稿の削除：バグ入りなので要修正（削除せずに本文を「削除されました」にして更新してしまう）
 function deletePost(postId) {
@@ -268,15 +269,17 @@ function deletePost(postId) {
     const postElement = $(`#post-${postId}`);
     postElement.addClass('deleting');
 
-    postsRef.child(postId).update({content: '削除されました'})
+      postsRef.child(postId).remove()
         .then(() => {
             showMessage('投稿を削除しました');
+            postElement.remove(); 
         })
         .catch((error) => {
             showMessage('削除に失敗しました：' + error.message, 'error');
             postElement.removeClass('deleting');
         });
 }
+
 
 // 更新時のアニメーション
 function animateUpdate(postId) {
